@@ -116,7 +116,7 @@
 ### Lab 5 - TODO - Wiki
 
 - [?] use mdsh for tool output
-- vm docs: is this true? "# This solution won't work outside the University network."
+- vm docs: is this true? "# This solution won't work outside of the University network."
 - [?] vm: describe full vm setup step by step
 - vs-code-lsp.md with examples of go to definition
 - [?] reference vs-code-lsp.md in the python setup
@@ -134,6 +134,7 @@
 - remove "In this project" because they quickly get obsolete
 - replace: `<term>` -> `<term>` placeholder
 - agents.md - explain based on <https://www.salmanq.com/blog/simplest-agent-loop/>
+- parameterize instructions over <user>
 
 ### Lab 5 - TODO - Docs
 
@@ -180,6 +181,8 @@
 - The instructions aren't guaranteed to work outside of Linux or macOS. This is why we require to use WSL
 
 - install jq via nix
+
+- always clone in ~/
 
 ### Lab 5 - TODO - Task 1
 
