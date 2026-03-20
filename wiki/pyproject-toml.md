@@ -3,9 +3,12 @@
 <h2>Table of contents</h2>
 
 - [What is `pyproject.toml`](#what-is-pyprojecttoml)
-- [`[project]`](#project)
+- [`[tool.uv.workspace]`](#tooluvworkspace)
 - [`[dependency-groups]`](#dependency-groups)
 - [`[tool.poe.tasks]`](#toolpoetasks)
+  - [Run server](#run-server)
+    - [`poe dev`](#poe-dev)
+    - [`poe dev-unsafe`](#poe-dev-unsafe)
   - [Static analysis](#static-analysis)
     - [`poe check`](#poe-check)
     - [`poe format`](#poe-format)
@@ -22,48 +25,43 @@
 
 ## What is `pyproject.toml`
 
-[`pyproject.toml`](../pyproject.toml) is the central configuration file for a [`Python`](./python.md#what-is-python) project. It defines project metadata, dependencies, and tool settings in [`TOML`](./file-formats.md#toml) format.
+[`pyproject.toml`](../pyproject.toml) is the central configuration file for a [`Python`](./python.md#what-is-python) project.
+It defines project metadata, dependencies, and tool settings in [`TOML`](./file-formats.md#toml) format.
 
-In this project, `pyproject.toml` configures the application dependencies, development tools, a [task runner](#toolpoetasks), and [static analysis](./quality-assurance.md#static-analysis) tools.
+This project uses a [`uv` workspace](#tooluvworkspace) layout with two `pyproject.toml` files:
+
+- [`pyproject.toml`](../pyproject.toml) (root) — configures the workspace, shared development tools, a [task runner](#toolpoetasks), and [static analysis](./quality-assurance.md#static-analysis) tools.
+- [`backend/pyproject.toml`](./backend-pyproject-toml.md#what-is-backendpyprojecttoml) — defines the backend application metadata and runtime dependencies.
 
 Docs:
 
 - [pyproject.toml specification](https://packaging.python.org/en/latest/specifications/pyproject-toml/)
 
-## `[project]`
+## `[tool.uv.workspace]`
 
-Defines the project metadata and runtime dependencies.
+Declares a [`uv`](./python.md#uv) workspace and lists its member packages.
 
 ```toml
-[project]
-name = "learning-management-service"
-version = "0.1.0"
-requires-python = "==3.14.2"
+[tool.uv.workspace]
+members = ["backend"]
 ```
 
-- **`name`** — the project name.
-- **`version`** — the current version of the project.
-- **`requires-python`** — the exact [`Python`](./python.md#what-is-python) version required. [`uv sync`](./vscode-python.md#install-python-and-dependencies) automatically downloads and uses this version.
-- **`dependencies`** — the list of packages required to run the application. [`uv`](./python.md#uv) installs them into the [virtual environment](./vscode-python.md#install-python-and-dependencies).
+- **`members`** — directories that contain their own `pyproject.toml` files.
+  [`uv`](./python.md#uv) treats each member as a separate package while sharing a single [virtual environment](./vscode-python.md#install-python-and-dependencies) and lock file at the workspace root.
+
+Docs:
+
+- [uv workspaces](https://docs.astral.sh/uv/concepts/workspaces/)
 
 ## `[dependency-groups]`
 
-Defines groups of additional dependencies. The `dev` group contains tools used during development but not required to run the application.
-
-```toml
-[dependency-groups]
-dev = [
-  "poethepoet>=0.40.0",
-  "pyright==1.1.408",
-  "pytest==9.0.2",
-  "ruff==0.14.14",
-  "ty==0.0.13",
-]
-```
+Defines groups of additional dependencies.
+The `dev` group contains tools used during development but not required to run the application.
 
 - **`poethepoet`** — the [task runner](#toolpoetasks) used to run predefined commands.
 - **`pyright`** — a [static analysis](./quality-assurance.md#static-analysis) type checker for `Python`.
 - **`pytest`** — the [testing framework](./python.md#pytest).
+- **`pytest-asyncio`** — a `pytest` plugin that enables running `async` test functions.
 - **`ruff`** — a fast [linter](#toolrufflint) and [formatter](#poe-format) for `Python`.
 - **`ty`** — a type checker for `Python`.
 
@@ -74,6 +72,27 @@ Defines tasks for `Poe the Poet`, a task runner that lets you run predefined com
 Docs:
 
 - [Poe the Poet documentation](https://poethepoet.natn.io/)
+
+### Run server
+
+#### `poe dev`
+
+```toml
+[tool.poe.tasks.dev]
+sequence = ["check", "dev-unsafe"]
+```
+
+Runs [`poe check`](#poe-check) followed by [`poe dev-unsafe`](#poe-dev-unsafe).
+This ensures the code passes all [static analysis](./quality-assurance.md#static-analysis) checks before starting the server.
+
+#### `poe dev-unsafe`
+
+```toml
+[tool.poe.tasks.dev-unsafe]
+cmd = "python backend/app/run.py"
+```
+
+Starts the backend server without running [static analysis](./quality-assurance.md#static-analysis) first.
 
 ### Static analysis
 
@@ -104,7 +123,8 @@ Formats all [`Python`](./python.md#what-is-python) files using `ruff`.
 cmd = "ruff check"
 ```
 
-Checks [`Python`](./python.md#what-is-python) code for lint errors using `ruff`. See [`[tool.ruff.lint]`](#toolrufflint) for the configured rules.
+Checks [`Python`](./python.md#what-is-python) code for lint errors using `ruff`.
+See [`[tool.ruff.lint]`](#toolrufflint) for the configured rules.
 
 #### `poe typecheck`
 
@@ -139,24 +159,24 @@ Therefore, unit tests run first.
 ```toml
 [tool.poe.tasks.test-unit]
 cmd = "pytest backend/tests/unit"
-envfile = ".env.tests.unit.secret"
+envfile = "backend/.env.tests.unit.secret"
 ```
 
 Runs [unit tests](./quality-assurance.md#unit-test) in `backend/tests/unit/` using [`pytest`](./python.md#pytest).
 
-Uses [environment variables](./environments.md#environment-variable) from [`.env.tests.unit.secret`](./dotenv-tests-unit-secret.md#what-is-envtestsunitsecret).
+Uses [environment variables](./environments.md#environment-variable) from [`backend/.env.tests.unit.secret`](./backend-dotenv-tests-unit-secret.md#what-is-backendenvtestsunitsecret).
 
 #### `poe test-e2e`
 
 ```toml
 [tool.poe.tasks.test-e2e]
 cmd = "pytest backend/tests/e2e"
-envfile = ".env.tests.e2e.secret"
+envfile = "backend/.env.tests.e2e.secret"
 ```
 
 Runs [end-to-end tests](./quality-assurance.md#end-to-end-test) in `backend/tests/e2e/` against the deployed API using [`pytest`](./python.md#pytest).
 
-Uses [environment variables](./environments.md#environment-variable) from [`.env.tests.e2e.secret`](./dotenv-tests-e2e-secret.md#what-is-envtestse2esecret).
+Uses [environment variables](./environments.md#environment-variable) from [`backend/.env.tests.e2e.secret`](./backend-dotenv-tests-e2e-secret.md#what-is-backendenvtestse2esecret).
 
 ## `[tool.ruff.lint]`
 
@@ -180,11 +200,17 @@ Configures the `pyright` type checker.
 ```toml
 [tool.pyright]
 include = ["backend"]
+exclude = ["**/__pycache__", "**/node_modules", "**/.*", ".venv", ".direnv"]
 typeCheckingMode = "strict"
+reportAssignmentType = "none"
+reportIncompatibleVariableOverride = "none"
 ```
 
 - **`include`** — only checks files in the `backend/` directory.
+- **`exclude`** — skips generated and tool-managed directories.
 - **`typeCheckingMode`** — uses `strict` mode for maximum type safety.
+- **`reportAssignmentType`** — disables errors for assignment type mismatches.
+- **`reportIncompatibleVariableOverride`** — disables errors for variable override type mismatches.
 
 Docs:
 
@@ -198,10 +224,12 @@ Configures [`pytest`](./python.md#pytest).
 [tool.pytest.ini_options]
 testpaths = ["backend/tests"]
 pythonpath = ["backend"]
+asyncio_mode = "auto"
 ```
 
 - **`testpaths`** — directories where `pytest` discovers tests.
 - **`pythonpath`** — directories added to `Python`'s import path so test files can import application modules.
+- **`asyncio_mode`** — set to `"auto"` so `async` test functions run automatically without requiring a per-function decorator.
 
 Docs:
 

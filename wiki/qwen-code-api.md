@@ -3,6 +3,7 @@
 <h2>Table of contents</h2>
 
 - [What is `Qwen Code` API](#what-is-qwen-code-api)
+- [`qwen-code-api` repository](#qwen-code-api-repository)
 - [`Qwen Code` API key](#qwen-code-api-key)
   - [`<qwen-code-api-key>` placeholder](#qwen-code-api-key-placeholder)
 - [`Qwen Code` API host port](#qwen-code-api-host-port)
@@ -27,7 +28,11 @@ sequenceDiagram
 
 The `Qwen Code` API is an [OpenAI-compatible API](./llm.md#openai-compatible-api) that uses the [`Qwen Code` credentials file](./qwen-code.md#qwen-code-credentials-file) to provide access to the [`Qwen` API](./qwen-code.md#qwen-api).
 
-The `Qwen Code` API is deployed using [`qwen-code-api`](https://github.com/inno-se-toolkit/qwen-code-api).
+The `Qwen Code` API is deployed using the [`qwen-code-api` repository](#qwen-code-api-repository).
+
+## `qwen-code-api` repository
+
+<https://github.com/inno-se-toolkit/qwen-code-api>
 
 ## `Qwen Code` API key
 

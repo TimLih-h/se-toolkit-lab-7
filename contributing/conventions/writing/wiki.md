@@ -58,8 +58,8 @@ Docs:
 - When an operation can be done multiple ways, list them as options: "Use any of the following methods:"
 - These wiki files must stay in sync with their corresponding source files — variable names, default values, and grouping must match:
   - `wiki/dotenv-docker-secret.md` ↔ `.env.docker.example`
-  - `wiki/dotenv-tests-unit-secret.md` ↔ `.env.tests.unit.example`
-  - `wiki/dotenv-tests-e2e-secret.md` ↔ `.env.tests.e2e.example`
+  - `wiki/backend-dotenv-tests-unit-secret.md` ↔ `backend/.env.tests.unit.example`
+  - `wiki/backend-dotenv-tests-e2e-secret.md` ↔ `backend/.env.tests.e2e.example`
   - `wiki/pyproject-toml.md` ↔ `pyproject.toml`
 - Vendor instructions that aren't good enough anywhere else (e.g., rewrite unclear official docs).
 - Provide fallback methods when one method may not work for all students.
@@ -174,8 +174,8 @@ This provides: what it is, where to find it, official docs, and how to use it.
 - [ ] `.env.example` files are provided; `.env.secret` files are gitignored (if the lab uses environment variables).
 - [ ] Wiki files are in sync with their corresponding source files — variable names, defaults, and grouping match (if the lab has dotenv or pyproject-toml wiki pages):
   - `wiki/dotenv-docker-secret.md` ↔ `.env.docker.example`
-  - `wiki/dotenv-tests-unit-secret.md` ↔ `.env.tests.unit.example`
-  - `wiki/dotenv-tests-e2e-secret.md` ↔ `.env.tests.e2e.example`
+  - `wiki/backend-dotenv-tests-unit-secret.md` ↔ `backend/.env.tests.unit.example`
+  - `wiki/backend-dotenv-tests-e2e-secret.md` ↔ `backend/.env.tests.e2e.example`
   - `wiki/pyproject-toml.md` ↔ `pyproject.toml`
 - [ ] `.dockerignore` excludes tests, docs, `.git/`, build caches, markdown files (if the lab uses Docker).
 - [ ] At least one test intentionally fails for the debugging task (if the lab has a testing/debugging task).

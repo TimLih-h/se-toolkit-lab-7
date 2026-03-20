@@ -70,7 +70,7 @@ Bot-specific Python project with dependencies. `cd bot && uv sync` must work wit
 
 ## Verify
 
-### Test mode
+### Verify in test mode
 
 Run on your VM:
 
@@ -91,6 +91,7 @@ uv run bot.py --test "/labs"
 ```
 
 **What to check:**
+
 - Each command prints *something* to stdout (even "Not implemented yet" is fine for this task)
 - No Python tracebacks
 - Exit code is 0 (the command doesn't show an error)

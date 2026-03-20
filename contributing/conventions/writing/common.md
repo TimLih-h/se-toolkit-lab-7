@@ -395,32 +395,32 @@ From a task file:
 [`VARIABLE_NAME`](../../../wiki/dotenv-docker-secret.md#variable_name) in [`.env.docker.secret`](../../../wiki/dotenv-docker-secret.md#what-is-envdockersecret)
 ```
 
-**`.env.tests.unit.secret`**
+**`backend/.env.tests.unit.secret`**
 
 From a wiki file:
 
 ```markdown
-[`VARIABLE_NAME`](./dotenv-tests-unit-secret.md#variable_name) in [`.env.tests.unit.secret`](./dotenv-tests-unit-secret.md#what-is-envtestsunitsecret)
+[`VARIABLE_NAME`](./backend-dotenv-tests-unit-secret.md#variable_name) in [`backend/.env.tests.unit.secret`](./backend-dotenv-tests-unit-secret.md#what-is-backendenvtestsunitsecret)
 ```
 
 From a task file:
 
 ```markdown
-[`VARIABLE_NAME`](../../../wiki/dotenv-tests-unit-secret.md#variable_name) in [`.env.tests.unit.secret`](../../../wiki/dotenv-tests-unit-secret.md#what-is-envtestsunitsecret)
+[`VARIABLE_NAME`](../../../wiki/backend-dotenv-tests-unit-secret.md#variable_name) in [`backend/.env.tests.unit.secret`](../../../wiki/backend-dotenv-tests-unit-secret.md#what-is-backendenvtestsunitsecret)
 ```
 
-**`.env.tests.e2e.secret`**
+**`backend/.env.tests.e2e.secret`**
 
 From a wiki file:
 
 ```markdown
-[`VARIABLE_NAME`](./dotenv-tests-e2e-secret.md#variable_name) in [`.env.tests.e2e.secret`](./dotenv-tests-e2e-secret.md#what-is-envtestse2esecret)
+[`VARIABLE_NAME`](./backend-dotenv-tests-e2e-secret.md#variable_name) in [`backend/.env.tests.e2e.secret`](./backend-dotenv-tests-e2e-secret.md#what-is-backendenvtestse2esecret)
 ```
 
 From a task file:
 
 ```markdown
-[`VARIABLE_NAME`](../../../wiki/dotenv-tests-e2e-secret.md#variable_name) in [`.env.tests.e2e.secret`](../../../wiki/dotenv-tests-e2e-secret.md#what-is-envtestse2esecret)
+[`VARIABLE_NAME`](../../../wiki/backend-dotenv-tests-e2e-secret.md#variable_name) in [`backend/.env.tests.e2e.secret`](../../../wiki/backend-dotenv-tests-e2e-secret.md#what-is-backendenvtestse2esecret)
 ```
 
 Following [4.8](#48-links-and-cross-references), the file link only needs to appear once per section when multiple variables from the same file are referenced together.
