@@ -113,13 +113,13 @@ BOT_TOKEN=123456789:ABCdefGhIJKlmNoPQRsTUVwxyz
 # LLM API (Qwen Code)
 LLM_API_MODEL=coder-model
 LLM_API_KEY=your-qwen-api-key
-LLM_API_BASE_URL=http://host.docker.internal:42005/v1
+LLM_API_BASE_URL=http://10.93.25.233:42005/v1  # Replace with your VM IP
 
 # LMS API (already set for backend)
 LMS_API_KEY=your-lms-api-key
 ```
 
-> **Note:** `LLM_API_BASE_URL` uses `host.docker.internal` to reach the Qwen proxy running on the host network.
+> **Note:** `LLM_API_BASE_URL` must point to your VM IP address (not `localhost` or `host.docker.internal` on Linux).
 
 ### Deploy Commands
 
@@ -183,7 +183,7 @@ LMS_API_KEY=your-lms-api-key
 |---------|----------|
 | Bot container keeps restarting | Check logs: `docker compose logs bot`. Usually missing env var or import error |
 | `/health` fails but backend works | `LMS_API_BASE_URL` must be `http://backend:8000` (not `localhost`) |
-| LLM queries fail | `LLM_API_BASE_URL` must use `host.docker.internal` for cross-network access |
+| LLM queries fail | `LLM_API_BASE_URL` must use VM IP (e.g., `http://10.93.25.233:42005/v1`) |
 | "BOT_TOKEN is required" | Add `BOT_TOKEN` to `.env.docker.secret` |
 | Build fails at `uv sync` | Check `bot/pyproject.toml` exists and is copied in Dockerfile |
 
@@ -192,6 +192,7 @@ LMS_API_KEY=your-lms-api-key
 The bot uses Docker's internal DNS to reach services:
 
 - **Backend**: `http://backend:8000` (same `lms-network`)
-- **LLM Proxy**: `http://host.docker.internal:42005/v1` (host network)
+- **LLM Proxy**: `http://YOUR_VM_IP:42005/v1` (VM host network)
 
+On Linux, `host.docker.internal` is not available by default. Use your VM's IP address instead.
 Inside Docker, `localhost` refers to the container itself, not the host. Always use service names for inter-container communication.
