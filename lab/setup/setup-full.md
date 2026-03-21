@@ -22,12 +22,12 @@
     - [1.6.2. (UPD) Clone your fork](#162-upd-clone-your-fork)
   - [1.7. (UPD) Open the cloned repo and set up `VS Code` (LOCAL)](#17-upd-open-the-cloned-repo-and-set-up-vs-code-local)
   - [1.8. Set up a new VM](#18-set-up-a-new-vm)
-  - [1.9. Set up `Python` (LOCAL)](#19-set-up-python-local)
-    - [1.9.1. Install `uv`](#191-install-uv)
-    - [1.9.2. (UPD) Set up `Python` in `VS Code`](#192-upd-set-up-python-in-vs-code)
-  - [1.10. Set up `Node.js` (LOCAL)](#110-set-up-nodejs-local)
-    - [1.10.1. Install `Node.js`](#1101-install-nodejs)
-    - [1.10.2. (UPD) Install `pnpm`](#1102-upd-install-pnpm)
+  - [1.9. Set up `Python`](#19-set-up-python)
+    - [1.9.1. Install `uv` (LOCAL)](#191-install-uv-local)
+    - [1.9.2. (UPD) Set up `Python` in `VS Code` (LOCAL)](#192-upd-set-up-python-in-vs-code-local)
+  - [1.10. Set up `Node.js`](#110-set-up-nodejs)
+    - [1.10.1. Install `Node.js` (LOCAL)](#1101-install-nodejs-local)
+    - [1.10.2. (UPD) Install `pnpm` (LOCAL)](#1102-upd-install-pnpm-local)
   - [1.11. (UPD) Set up `Qwen Code` (LOCAL)](#111-upd-set-up-qwen-code-local)
   - [1.12. (UPD) Deploy the LMS API (REMOTE)](#112-upd-deploy-the-lms-api-remote)
   - [1.13. (UPD) Set up the `Qwen Code` API (REMOTE)](#113-upd-set-up-the-qwen-code-api-remote)
@@ -221,32 +221,32 @@ See [tools](../../wiki/software-types.md#tool).
 
 1. If you can't [connect to your VM as the user `admin`](../../wiki/vm-access.md#connect-to-the-vm-as-the-user-user-local), [set up a new VM](../../wiki/vm.md#set-up-a-new-vm).
 
-### 1.9. Set up `Python` (LOCAL)
+### 1.9. Set up `Python`
 
 > [!NOTE]
 > See [What is `Python`](../../wiki/python.md#what-is-python).
 
-#### 1.9.1. Install `uv`
+#### 1.9.1. Install `uv` (LOCAL)
 
 > [!NOTE]
 > See [`uv`](../../wiki/python.md#uv).
 
 1. [Install `uv`](../../wiki/python.md#install-uv).
 
-#### 1.9.2. (UPD) Set up `Python` in `VS Code`
+#### 1.9.2. (UPD) Set up `Python` in `VS Code` (LOCAL)
 
 > [!NOTE]
 > The dependencies have been updated in this project version.
 
 1. [Set up `Python` in `VS Code`](../../wiki/vscode-python.md#set-up-python-in-vs-code).
 
-### 1.10. Set up `Node.js` (LOCAL)
+### 1.10. Set up `Node.js`
 
-#### 1.10.1. Install `Node.js`
+#### 1.10.1. Install `Node.js` (LOCAL)
 
 1. [Install `Node.js`](../../wiki/nodejs.md#install-nodejs).
 
-#### 1.10.2. (UPD) Install `pnpm`
+#### 1.10.2. (UPD) Install `pnpm` (LOCAL)
 
 1. [Install `pnpm`](../../wiki/nodejs.md#install-pnpm).
 
@@ -268,12 +268,12 @@ See [tools](../../wiki/software-types.md#tool).
 ### 1.13. (UPD) Set up the `Qwen Code` API (REMOTE)
 
 1. [Set up the `Qwen Code` API on your VM](../../wiki/qwen-code-api-deployment.md#deploy-the-qwen-code-api-remote).
-2. [Check that the `Qwen Code` is accessible](../../wiki/qwen-code-api.md#check-that-the-qwen-code-api-is-accessible) on your local machine (LOCAL).
+2. [Check that the `Qwen Code` is accessible on your local machine (LOCAL)](../../wiki/qwen-code-api.md#check-that-the-qwen-code-api-is-accessible).
 
 ### 1.14. Set up the `Telegram` bot
 
 1. [Create a `Telegram` bot](../../wiki/bot.md#create-a-telegram-bot).
-2. [Configure the environment for the bot](../../wiki/bot.md#configure-the-environment-remote) on your VM (REMOTE).
+2. [Configure the environment for the bot on your VM (REMOTE)](../../wiki/bot.md#configure-the-environment-remote).
 3. [Install `uv` (REMOTE)](../../wiki/python.md#install-uv).
 
 ### 1.15. Set up the `Autochecker` bot
