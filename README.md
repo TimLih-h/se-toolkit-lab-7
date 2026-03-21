@@ -91,3 +91,107 @@ By the end of this lab, you should be able to say:
 2. [Backend Integration](./lab/tasks/required/task-2.md) — P0: slash commands + real data
 3. [Intent-Based Natural Language Routing](./lab/tasks/required/task-3.md) — P1: LLM tool use
 4. [Containerize and Document](./lab/tasks/required/task-4.md) — P3: containerize + deploy
+
+## Deploy
+
+### Prerequisites
+
+Before deploying, ensure you have:
+
+1. **Telegram Bot Token** from @BotFather
+2. **LLM API credentials** (Qwen Code API or OpenRouter)
+3. **LMS API Key** from `.env.docker.secret`
+
+### Environment Variables
+
+Create or update `.env.docker.secret` with bot credentials:
+
+```bash
+# Telegram Bot
+BOT_TOKEN=123456789:ABCdefGhIJKlmNoPQRsTUVwxyz
+
+# LLM API (Qwen Code)
+LLM_API_MODEL=coder-model
+LLM_API_KEY=your-qwen-api-key
+LLM_API_BASE_URL=http://host.docker.internal:42005/v1
+
+# LMS API (already set for backend)
+LMS_API_KEY=your-lms-api-key
+```
+
+> **Note:** `LLM_API_BASE_URL` uses `host.docker.internal` to reach the Qwen proxy running on the host network.
+
+### Deploy Commands
+
+1. **Stop any running bot process** (from previous tasks):
+
+   ```bash
+   pkill -f "bot.py" 2>/dev/null || true
+   ```
+
+2. **Start all services** (backend + bot):
+
+   ```bash
+   cd ~/se-toolkit-lab-7
+   docker compose --env-file .env.docker.secret up --build -d
+   ```
+
+3. **Verify services are running**:
+
+   ```bash
+   docker compose --env-file .env.docker.secret ps
+   ```
+
+   You should see:
+
+   ```
+   SERVICE    STATUS
+   backend    Up
+   bot        Up
+   caddy      Up
+   pgadmin    Up
+   postgres   Up (healthy)
+   ```
+
+### Verify Deployment
+
+1. **Check bot container logs**:
+
+   ```bash
+   docker compose --env-file .env.docker.secret logs bot --tail 20
+   ```
+
+   Look for:
+   - "Application started" — bot connected successfully
+   - No Python tracebacks
+
+2. **Test in Telegram**:
+   - Send `/start` — should receive welcome message
+   - Send `/health` — should show backend status
+   - Send "what labs are available?" — should list labs
+   - Send "which lab has the lowest pass rate?" — should show comparison
+
+3. **Verify backend is still healthy**:
+
+   ```bash
+   curl -sf http://localhost:42002/docs -H "Authorization: Bearer YOUR_LMS_API_KEY"
+   ```
+
+### Troubleshooting
+
+| Problem | Solution |
+|---------|----------|
+| Bot container keeps restarting | Check logs: `docker compose logs bot`. Usually missing env var or import error |
+| `/health` fails but backend works | `LMS_API_BASE_URL` must be `http://backend:8000` (not `localhost`) |
+| LLM queries fail | `LLM_API_BASE_URL` must use `host.docker.internal` for cross-network access |
+| "BOT_TOKEN is required" | Add `BOT_TOKEN` to `.env.docker.secret` |
+| Build fails at `uv sync` | Check `bot/pyproject.toml` exists and is copied in Dockerfile |
+
+### Docker Networking
+
+The bot uses Docker's internal DNS to reach services:
+
+- **Backend**: `http://backend:8000` (same `lms-network`)
+- **LLM Proxy**: `http://host.docker.internal:42005/v1` (host network)
+
+Inside Docker, `localhost` refers to the container itself, not the host. Always use service names for inter-container communication.
