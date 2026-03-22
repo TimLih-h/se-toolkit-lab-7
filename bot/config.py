@@ -1,6 +1,5 @@
 """Configuration loading from environment variables."""
 
-import os
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -17,7 +16,7 @@ class BotSettings(BaseSettings):
     bot_token: str = ""
 
     # LMS API
-    lms_api_base_url: str = "http://backend:8000"
+    lms_api_base_url: str = "http://localhost:42002"
     lms_api_key: str = ""
 
     # LLM API
@@ -28,21 +27,4 @@ class BotSettings(BaseSettings):
 
 def load_settings() -> BotSettings:
     """Load bot settings from environment."""
-    # In Docker, environment variables take precedence
-    settings = BotSettings()
-    
-    # Override with env vars if set (for Docker)
-    if os.getenv("BOT_TOKEN"):
-        settings.bot_token = os.getenv("BOT_TOKEN")
-    if os.getenv("LMS_API_BASE_URL"):
-        settings.lms_api_base_url = os.getenv("LMS_API_BASE_URL")
-    if os.getenv("LMS_API_KEY"):
-        settings.lms_api_key = os.getenv("LMS_API_KEY")
-    if os.getenv("LLM_API_MODEL"):
-        settings.llm_api_model = os.getenv("LLM_API_MODEL")
-    if os.getenv("LLM_API_KEY"):
-        settings.llm_api_key = os.getenv("LLM_API_KEY")
-    if os.getenv("LLM_API_BASE_URL"):
-        settings.llm_api_base_url = os.getenv("LLM_API_BASE_URL")
-    
-    return settings
+    return BotSettings()

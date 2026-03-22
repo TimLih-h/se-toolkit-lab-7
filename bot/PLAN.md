@@ -1,123 +1,80 @@
-# Task 4: Containerize and Document - Implementation Plan
+# Bot Development Plan
 
 ## Overview
 
-This task containerizes the Telegram bot so it runs alongside the backend as a proper Docker service, replacing the fragile `nohup` background process.
+This document outlines the implementation plan for the Telegram bot that interfaces with the Learning Management System (LMS) backend. The bot provides students with access to their lab progress, scores, and health checks through natural language commands.
 
-## Deliverables
+## Architecture
 
-### 1. Bot Dockerfile (`bot/Dockerfile`)
+The bot follows a **layered architecture** with clear separation of concerns:
 
-Multi-stage build using `uv` and `pyproject.toml`:
+1. **Transport Layer** (`bot.py`): Handles Telegram Bot API communication. Also provides a `--test` CLI mode for offline testing without Telegram connection.
 
-**Stage 1 (Builder):**
-- Base: `astral/uv:python3.14-bookworm-slim`
-- Copy `bot/pyproject.toml`
-- Run `uv sync --frozen --no-install-project`
-- Copy bot source code
+2. **Handler Layer** (`handlers/`): Contains command handlers that process user input and return text responses. These are pure functions with no Telegram dependency, making them testable in isolation.
 
-**Stage 2 (Runtime):**
-- Base: `python:3.14.2-slim-bookworm`
-- Create non-root user `nonroot`
-- Copy application from builder
-- Set PATH to include virtualenv
-- Run `bot.py` as entry point
+3. **Service Layer** (`services/`): External API clients (LMS backend, LLM API). Handles HTTP requests, authentication, and error handling.
 
-**Key decisions:**
-- No `requirements.txt` — uses `pyproject.toml` exclusively
-- Non-root user for security
-- Bytecode compilation for faster startup
+4. **Configuration** (`config.py`): Loads environment variables from `.env.bot.secret` for secrets management.
 
-### 2. Docker Compose Service (`docker-compose.yml`)
+## Task Breakdown
 
-Add `bot` service with:
+### Task 1: Scaffold (Current)
 
-```yaml
-bot:
-  build:
-    context: .
-    dockerfile: bot/Dockerfile
-  restart: unless-stopped
-  networks:
-    - lms-network
-  environment:
-    - BOT_TOKEN=${BOT_TOKEN}
-    - LMS_API_BASE_URL=http://backend:8000  # Service name, not localhost
-    - LMS_API_KEY=${LMS_API_KEY}
-    - LLM_API_MODEL=${LLM_API_MODEL}
-    - LLM_API_KEY=${LLM_API_KEY}
-    - LLM_API_BASE_URL=${LLM_API_BASE_URL}
-  depends_on:
-    - backend
-```
+Create the project skeleton with:
+- Entry point with `--test` mode
+- Placeholder handlers for `/start`, `/help`, `/health`, `/labs`, `/scores`
+- Configuration loading from environment
+- Dependencies via `pyproject.toml`
 
-**Key networking change:**
-- Bot uses `http://backend:8000` not `http://localhost:42002`
-- Inside Docker, `localhost` is the container itself
-- Service names resolve via Docker's internal DNS
+**Key decision:** Handlers are separated from Telegram from the start. This is called *separation of concerns* — the same handler function works from `--test` mode, unit tests, or Telegram.
 
-### 3. README Deploy Section
+### Task 2: Backend Integration
 
-Add "Deploy" section documenting:
-- Required environment variables
-- Docker Compose commands
-- Verification steps
-- Common troubleshooting
+Implement real API calls to the LMS backend:
+- `/health` → `GET /health` endpoint
+- `/labs` → `GET /items/` to list available labs
+- `/scores <lab>` → `GET /items/{id}/submissions` for student submissions
+
+**Key decision:** API client uses Bearer token authentication with `LMS_API_KEY` from environment. Base URL from `LMS_API_BASE_URL` allows different environments (local, VM, production).
+
+### Task 3: Intent Routing with LLM
+
+Add natural language understanding:
+- Use LLM to classify user intent and route to appropriate handler
+- Tool descriptions tell the LLM what each handler does
+- Fallback to help message when intent is unclear
+
+**Key decision:** The LLM decides which tool to call based on descriptions — not regex or keyword matching. This is the core of tool use: the model reads descriptions and picks the right tool.
+
+### Task 4: Deployment
+
+Deploy the bot on the VM:
+- Run as a background service
+- Auto-restart on failure
+- Logging for debugging
+
+**Key decision:** Simple `nohup` deployment for now. Can upgrade to systemd or Docker later.
+
+## Testing Strategy
+
+1. **Test mode** (`--test`): Quick verification during development
+2. **Unit tests**: Test handlers in isolation (future)
+3. **Manual Telegram testing**: Verify real user experience
 
 ## Environment Variables
 
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `BOT_TOKEN` | Yes | — | Telegram bot token from @BotFather |
-| `LMS_API_BASE_URL` | No | `http://backend:8000` | Backend URL (use service name in Docker) |
-| `LMS_API_KEY` | Yes | — | API key for Bearer auth |
-| `LLM_API_MODEL` | No | `coder-model` | LLM model name |
-| `LLM_API_KEY` | Yes | — | LLM API key |
-| `LLM_API_BASE_URL` | Yes | — | LLM API endpoint |
-
-## Docker Networking
-
-The bot needs to reach:
-1. **Backend** → `http://backend:8000` (same `lms-network`)
-2. **LLM proxy** → `http://host.docker.internal:42005` (different network)
-
-For the LLM, we use `host.docker.internal` because the Qwen proxy runs on a separate Docker network.
-
-## Build Process
-
-1. Docker reads `bot/Dockerfile`
-2. Builder stage installs deps via `uv sync`
-3. Runtime stage copies application
-4. Compose starts bot with env vars
-5. Bot connects to backend via `lms-network`
-
-## Verification
-
-```bash
-# Check bot is running
-docker compose ps bot
-
-# View logs
-docker compose logs bot --tail 20
-
-# Test in Telegram
-# Send: /start, /health, "what labs are available?"
-```
-
-## Common Issues
-
-| Symptom | Cause | Fix |
-|---------|-------|-----|
-| Container restarts | Missing env var | Check `.env.docker.secret` has all required vars |
-| Backend connection refused | Using `localhost` | Change to `http://backend:8000` |
-| LLM fails | Wrong URL | Use `host.docker.internal` for cross-network |
-| Build fails at `uv sync` | Missing `pyproject.toml` | Check COPY paths in Dockerfile |
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `BOT_TOKEN` | Telegram bot token from @BotFather | `123456:ABCdef...` |
+| `LMS_API_BASE_URL` | Backend API base URL | `http://localhost:42002` |
+| `LMS_API_KEY` | API key for Bearer auth | `my-secret-key` |
+| `LLM_API_KEY` | Qwen Code API key | `my-qwen-key` |
+| `LLM_API_BASE_URL` | LLM API endpoint | `http://localhost:42005/v1` |
+| `LLM_API_MODEL` | Model name for completions | `coder-model` |
 
 ## Success Criteria
 
-1. `bot/Dockerfile` exists and builds
-2. `docker-compose.yml` has `bot` service
-3. Bot container runs (`docker ps`)
-4. Backend still healthy
-5. Bot responds in Telegram
-6. README has deploy section
+- All commands work in `--test` mode
+- Bot responds in Telegram
+- No secrets committed to git
+- Clean separation between layers
