@@ -1,124 +1,80 @@
-# Task 3: Intent-Based Natural Language Routing - Implementation Plan
+# Bot Development Plan
 
 ## Overview
 
-This task adds LLM-powered intent routing to the Telegram bot. Instead of requiring users to type `/commands`, they can ask natural questions like "which lab has the lowest pass rate?" and the bot figures out what data to fetch.
+This document outlines the implementation plan for the Telegram bot that interfaces with the Learning Management System (LMS) backend. The bot provides students with access to their lab progress, scores, and health checks through natural language commands.
 
 ## Architecture
 
-### Tool Calling Pattern
+The bot follows a **layered architecture** with clear separation of concerns:
 
-The bot implements the same tool use pattern from Lab 6:
+1. **Transport Layer** (`bot.py`): Handles Telegram Bot API communication. Also provides a `--test` CLI mode for offline testing without Telegram connection.
 
-1. **User sends message** → Bot receives text
-2. **Bot sends to LLM** → Message + tool definitions (9 backend endpoints)
-3. **LLM returns tool calls** → JSON with function names and arguments
-4. **Bot executes tools** → Calls LMS API endpoints
-5. **Bot feeds results back** → Tool results added to conversation
-6. **LLM summarizes** → Final answer based on actual data
+2. **Handler Layer** (`handlers/`): Contains command handlers that process user input and return text responses. These are pure functions with no Telegram dependency, making them testable in isolation.
 
-### Tool Definitions (9 endpoints)
+3. **Service Layer** (`services/`): External API clients (LMS backend, LLM API). Handles HTTP requests, authentication, and error handling.
 
-| Tool | Endpoint | Purpose |
-|------|----------|---------|
-| `get_items` | GET /items/ | List all labs and tasks |
-| `get_learners` | GET /learners/ | Enrolled students and groups |
-| `get_scores` | GET /analytics/scores?lab= | Score distribution (4 buckets) |
-| `get_pass_rates` | GET /analytics/pass-rates?lab= | Per-task averages |
-| `get_timeline` | GET /analytics/timeline?lab= | Submissions per day |
-| `get_groups` | GET /analytics/groups?lab= | Per-group performance |
-| `get_top_learners` | GET /analytics/top-learners?lab=&limit= | Top N learners |
-| `get_completion_rate` | GET /analytics/completion-rate?lab= | Completion percentage |
-| `trigger_sync` | POST /pipeline/sync | Refresh data from autochecker |
+4. **Configuration** (`config.py`): Loads environment variables from `.env.bot.secret` for secrets management.
 
-### System Prompt
+## Task Breakdown
 
-The LLM receives a system prompt that:
-- Explains its role as an LMS assistant
-- Encourages tool use for data-driven answers
-- Handles greetings, gibberish, and ambiguous queries gracefully
+### Task 1: Scaffold (Current)
 
-### Multi-Step Reasoning
+Create the project skeleton with:
+- Entry point with `--test` mode
+- Placeholder handlers for `/start`, `/help`, `/health`, `/labs`, `/scores`
+- Configuration loading from environment
+- Dependencies via `pyproject.toml`
 
-The router supports a conversation loop:
-- LLM calls tool(s) → Bot executes → Results fed back → LLM continues
-- Maximum 5 iterations to prevent infinite loops
-- Debug logging to stderr shows tool calls and results
+**Key decision:** Handlers are separated from Telegram from the start. This is called *separation of concerns* — the same handler function works from `--test` mode, unit tests, or Telegram.
 
-## Files Structure
+### Task 2: Backend Integration
 
-```
-bot/
-├── bot.py                  # Entry point with --test mode, inline buttons
-├── config.py               # Environment loading
-├── handlers/
-│   ├── __init__.py
-│   ├── command.py          # Slash command handlers
-│   └── intent_router.py    # LLM-based intent routing
-└── services/
-    ├── __init__.py
-    ├── lms_client.py       # LMS API client (9 endpoints)
-    └── llm_client.py       # LLM client with tool calling
-```
+Implement real API calls to the LMS backend:
+- `/health` → `GET /health` endpoint
+- `/labs` → `GET /items/` to list available labs
+- `/scores <lab>` → `GET /items/{id}/submissions` for student submissions
 
-## Inline Keyboard Buttons
+**Key decision:** API client uses Bearer token authentication with `LMS_API_KEY` from environment. Base URL from `LMS_API_BASE_URL` allows different environments (local, VM, production).
 
-Common queries accessible via buttons:
-- 📚 What labs? → Lists available labs
-- 💯 Lab 4 scores → Shows pass rates for lab-04
-- 📊 Lowest pass rate → Multi-step query comparing all labs
-- 🏆 Top students → Shows top 5 learners
+### Task 3: Intent Routing with LLM
+
+Add natural language understanding:
+- Use LLM to classify user intent and route to appropriate handler
+- Tool descriptions tell the LLM what each handler does
+- Fallback to help message when intent is unclear
+
+**Key decision:** The LLM decides which tool to call based on descriptions — not regex or keyword matching. This is the core of tool use: the model reads descriptions and picks the right tool.
+
+### Task 4: Deployment
+
+Deploy the bot on the VM:
+- Run as a background service
+- Auto-restart on failure
+- Logging for debugging
+
+**Key decision:** Simple `nohup` deployment for now. Can upgrade to systemd or Docker later.
 
 ## Testing Strategy
 
-### Single-Step Queries
-- "what labs are available?" → `get_items` → List labs
-- "show me scores for lab 4" → `get_pass_rates(lab="lab-04")` → Format
+1. **Test mode** (`--test`): Quick verification during development
+2. **Unit tests**: Test handlers in isolation (future)
+3. **Manual Telegram testing**: Verify real user experience
 
-### Multi-Step Queries
-- "which lab has the lowest pass rate?" → `get_items` → `get_pass_rates` for each → Compare
-- "which group is doing best in lab 3?" → `get_groups(lab="lab-03")` → Rank
+## Environment Variables
 
-### Fallback Cases
-- "hello" → Greeting + capabilities hint
-- "asdfgh" → "I didn't understand. Here's what I can do..."
-- "lab 4" → "What about lab 4? I can show..."
-
-### Debug Output
-
-Test mode prints to stderr:
-```
-[tool] LLM called: get_items({})
-[tool] Result: 44 items
-[tool] LLM called: get_pass_rates({"lab":"lab-01"})
-[tool] Result: 8 tasks
-[summary] Feeding 7 tool result(s) back to LLM
-```
-
-## Dependencies
-
-- `httpx` - HTTP client for API calls
-- `pydantic-settings` - Configuration loading
-- `aiogram` - Telegram bot framework (prepared for Task 4)
-
-## LLM Configuration
-
-Uses Qwen Code API (same as Lab 6):
-- Base URL: `http://localhost:42005/v1`
-- Model: `coder-model`
-- API Key: from `.env.bot.secret`
-
-## Error Handling
-
-- LLM unreachable → "LLM error: ... The AI service may be temporarily unavailable."
-- Tool execution fails → Error returned in tool result, LLM can retry or explain
-- Max iterations reached → Partial answer with available information
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `BOT_TOKEN` | Telegram bot token from @BotFather | `123456:ABCdef...` |
+| `LMS_API_BASE_URL` | Backend API base URL | `http://localhost:42002` |
+| `LMS_API_KEY` | API key for Bearer auth | `my-secret-key` |
+| `LLM_API_KEY` | Qwen Code API key | `my-qwen-key` |
+| `LLM_API_BASE_URL` | LLM API endpoint | `http://localhost:42005/v1` |
+| `LLM_API_MODEL` | Model name for completions | `coder-model` |
 
 ## Success Criteria
 
-1. `--test "what labs are available"` → Non-empty answer (≥20 chars)
-2. `--test "which lab has the lowest pass rate"` → Mentions specific lab
-3. `--test "asdfgh"` → Helpful message, no crash
-4. Debug output shows tool calls and results
-5. 9 tool definitions in source code
-6. Tool results fed back to LLM for final answer
+- All commands work in `--test` mode
+- Bot responds in Telegram
+- No secrets committed to git
+- Clean separation between layers

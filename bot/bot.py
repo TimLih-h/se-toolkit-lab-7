@@ -1,4 +1,4 @@
-"""Telegram bot entry point with --test mode and intent routing support."""
+"""Telegram bot entry point with --test mode support."""
 
 import argparse
 import sys
@@ -8,26 +8,16 @@ from handlers import (
     handle_health,
     handle_help,
     handle_labs,
-    handle_natural_language,
     handle_scores,
     handle_start,
 )
-
-
-# Inline keyboard buttons for common queries
-INLINE_BUTTONS = [
-    {"text": "📚 What labs?", "callback_data": "labs"},
-    {"text": "💯 Lab 4 scores", "callback_data": "scores_lab-04"},
-    {"text": "📊 Lowest pass rate", "callback_data": "lowest_pass_rate"},
-    {"text": "🏆 Top students", "callback_data": "top_students"},
-]
 
 
 def parse_command(text: str) -> tuple[str, str]:
     """Parse command text into command and arguments.
     
     Args:
-        text: User input text (e.g., "/scores lab-04" or "hello").
+        text: User input text (e.g., "/scores lab-04" or "/start").
         
     Returns:
         Tuple of (command, arguments).
@@ -48,7 +38,6 @@ def run_command(command: str, args: str) -> str:
     Returns:
         Response text from the handler.
     """
-    # Slash commands
     handlers = {
         "/start": lambda: handle_start(),
         "/help": lambda: handle_help(),
@@ -60,9 +49,7 @@ def run_command(command: str, args: str) -> str:
     handler = handlers.get(command)
     if handler:
         return handler()
-    
-    # Natural language query - use intent router
-    return handle_natural_language(f"{command} {args}".strip())
+    return f"Unknown command: {command}. Use /help to see available commands."
 
 
 def test_mode(text: str) -> None:
@@ -83,11 +70,9 @@ def telegram_mode(settings) -> None:
     Args:
         settings: Bot configuration settings.
     """
-    # TODO: Implement Telegram bot client with aiogram (Task 4)
-    # For now, show that intent routing is available
-    print("Telegram mode: Intent routing ready (Task 4 will implement aiogram)")
-    print(f"Inline buttons configured: {len(INLINE_BUTTONS)}")
-    sys.exit(0)
+    # TODO: Implement Telegram bot client (Task 4)
+    print("Telegram mode not implemented yet")
+    sys.exit(1)
 
 
 def main() -> None:
